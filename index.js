@@ -134,7 +134,7 @@ function loop() {
           return;
         }
         if (result) {
-          console.log(`${result} wins! Congrats.`);
+          console.log(`\n\n${result} wins! Congrats.\n`);
           rl.close();
           return;
         }
