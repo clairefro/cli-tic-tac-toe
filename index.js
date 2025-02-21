@@ -118,7 +118,9 @@ function loop() {
         console.log("Bye!");
         rl.close();
         return;
-      } else if (isValidChar(inLower)) {
+      }
+
+      if (isValidChar(inLower)) {
         if (isMarked(moves, boardKeyMap[inLower])) {
           throw new Error("You can't mark a used space!! Try another key");
         }
