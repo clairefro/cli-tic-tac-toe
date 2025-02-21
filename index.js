@@ -11,8 +11,6 @@ const EMPTY = "%";
 const TIE = "TIE";
 let xsTurn = true;
 
-const MSG_PADDING = `\n\n`;
-
 /** draw a board from a string of 9 chars */
 function buildBoard(moves, title) {
   if (moves.length !== 9) {
@@ -23,7 +21,7 @@ function buildBoard(moves, title) {
     .map((row) => `| ${row.split("").join(" | ")} |`)
     .join("\n-------------\n")
     // display empty spaces as spaces
-    .replace(new RegExp(EMPTY, "g"), " ")}${MSG_PADDING}`;
+    .replace(new RegExp(EMPTY, "g"), " ")}\n\n`;
 }
 
 const boardKeyMap = {
@@ -69,35 +67,31 @@ function updateGameBoard() {
 
 /** returns undefined, or the winning player, or "TIE" if no winner and moves are exhausted */
 function checkResult(moves) {
-  let winner;
+  const winningCombos = [
+    // HORIZONTAL
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    // VERTICAL
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    // DIAGONAL
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
 
-  // CHECK HORIZONTAL (0-2,3-5,6-8 match, non-empty)
-  const horizontalWinRe = new RegExp(
-    `^(?:(?!${EMPTY})(.)\\1{2}.{6}|.{3}(?!${EMPTY})(.)\\2{2}.{3}|.{6}(?!${EMPTY})(.)\\3{2})$`
-  );
-  const horMatches = moves.match(horizontalWinRe);
-  winner = horMatches
-    ? horMatches[1] || horMatches[2] || horMatches[3]
-    : undefined;
-  if (winner) return winner;
-
-  // CHECK VERTICAL (every 3 indexes match, non-empty)
-  const verticalWinRe = new RegExp(`(?!${EMPTY})(.)(?:.{2}\\1){2}`);
-  const verMatches = moves.match(verticalWinRe);
-  winner = verMatches ? verMatches[1] : undefined;
-  if (winner) return winner;
-
-  // CHECK DIAGONAL (0,4,8) or (2,4,6), non-empty
-  const diagonalWinRe = new RegExp(
-    `^(?!([^${EMPTY}]).\\1.\\1.\\1.\\1$)(?:([^${EMPTY}]).{3}\\2.{3}\\2|.{2}([^${EMPTY}]).\\3.\\3..)$`
-  );
-  const diaMatches = moves.match(diagonalWinRe);
-  // NOTE: skip first match, as it is a negative lookahead
-  winner = diaMatches ? diaMatches[2] || diaMatches[3] : undefined;
-  if (winner) return winner;
+  for (const combo of winningCombos) {
+    const [a, b, c] = combo;
+    if (moves[a] === moves[b] && moves[b] === moves[c] && moves[a] !== EMPTY) {
+      return moves[a];
+    }
+  }
 
   // CHECK FOR TIE (no empty && no wins)
   if (!moves.match(EMPTY)) return TIE;
+
+  return;
 }
 
 function isValidChar(input) {
@@ -114,7 +108,7 @@ function loop() {
   const turnMsg = `${xsTurn ? X : O}'s turn.`;
 
   console.log(
-    `${MSG_PADDING}${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
+    `\n\n${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
   );
 
   rl.question("> ", (input) => {
@@ -138,12 +132,13 @@ function loop() {
           console.log("TIE GAME! No winner.");
           rl.close();
           return;
-        } else if (result) {
+        }
+        if (result) {
           console.log(`${result} wins! Congrats.`);
           rl.close();
           return;
         }
-        console.log(`${MSG_PADDING}${xsTurn ? X : O} entered: ${input}`);
+        console.log(`\n\n${xsTurn ? X : O} entered: ${input}`);
         xsTurn = !xsTurn;
       } else {
         console.log("Invalid input. Choose from: E, R, T / D, F, G / C, V, B");
