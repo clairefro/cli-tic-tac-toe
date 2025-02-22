@@ -56,7 +56,7 @@ function replaceChar(str, i, r) {
 }
 
 function isMarked(movesStr, i) {
-  return movesStr[i] !== "%";
+  return movesStr[i] !== EMPTY;
 }
 
 function updateGameBoard() {
