@@ -10,6 +10,10 @@ const O = "O";
 const EMPTY = "%";
 const TIE = "TIE";
 let xsTurn = true;
+const MODE = {
+  SINGLE: "SINGLE",
+  MULTI: "MULTI",
+};
 
 /** draw a board from a string of 9 chars */
 function buildBoard(moves, title) {
@@ -48,6 +52,8 @@ let moves = EMPTY.repeat(9);
 function clearScreen() {
   // ESC<clear>ESC<set cursor 0,0>
   process.stdout.write("\x1B[2J\x1B[0f");
+}
+function drawMap() {
   process.stdout.write(map);
 }
 
@@ -100,15 +106,20 @@ function isValidChar(input) {
 
 function displayBoard() {
   clearScreen();
+  drawMap();
   updateGameBoard();
 }
 
-function loop() {
+function computerMove() {}
+
+function loop(mode) {
   displayBoard();
   const turnMsg = `${xsTurn ? X : O}'s turn.`;
 
+  if (mode == MODE.SINGLE && !xsTurn) {
+  }
   console.log(
-    `\n\n${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
+    `\n${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
   );
 
   rl.question("> ", (input) => {
@@ -136,11 +147,11 @@ function loop() {
           return;
         }
         if (result) {
-          console.log(`\n\n${result} wins! Congrats.`);
+          console.log(`\n${result} wins! Congrats.`);
           rl.close();
           return;
         }
-        console.log(`\n\n${xsTurn ? X : O} entered: ${input}`);
+        console.log(`\n${xsTurn ? X : O} entered: ${input}`);
         xsTurn = !xsTurn;
       } else {
         console.log("Invalid input. Choose from: E, R, T / D, F, G / C, V, B");
@@ -154,9 +165,26 @@ function loop() {
 }
 
 function init() {
+  // default to single player
+  let mode = MODE.SINGLE;
   // ask for game mode
   // start game loop with mode as arg
-  rl.question;
+  rl.question(
+    "Select game mode:\n\n- 1. Single player (vs. computer)\n\n- 2. Multiplayer\n\n> ",
+    (answer) => {
+      if (answer.trim() === "1") {
+        mode = MODE.SINGLE;
+        console.log("\nSingle Player mode! You're X and computer is O.");
+      } else if (answer.trim() === "2") {
+        mode = MODE.MULTI;
+        console.log("\nMultiplayer mode!");
+      } else {
+        console.log("\nInvalid mode selection. Defaulting to Single player.");
+      }
+      // delay start to show message
+      setTimeout(() => loop(mode), 700);
+    }
+  );
 }
 
-loop();
+init();
