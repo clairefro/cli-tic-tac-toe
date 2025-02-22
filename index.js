@@ -143,7 +143,11 @@ function loop() {
         console.log(`\n\n${xsTurn ? X : O} entered: ${input}`);
         xsTurn = !xsTurn;
       } else {
-        console.log("Invalid input. Choose from: E, R, T / D, F, G / C, V, B");
+        console.log(
+          `Invalid input. Choose from: ${Object.keys(boardKeyMap)
+            .map((k) => k.toUpperCase())
+            .join(", ")}`
+        );
       }
     } catch (e) {
       console.log(e.message);
