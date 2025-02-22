@@ -5,15 +5,39 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+// --- CONSTANTS ---
 const X = "X";
 const O = "O";
 const EMPTY = "%";
 const TIE = "TIE";
+
+const boardKeyMap = {
+  e: 0,
+  r: 1,
+  t: 2,
+  d: 3,
+  f: 4,
+  g: 5,
+  c: 6,
+  v: 7,
+  b: 8,
+};
+// -----------------
+
+const keymapStr = Object.keys(boardKeyMap)
+  .map((k) => k.toUpperCase())
+  .join("");
+
+const map = buildBoard(keymapStr, "KEY MAP");
+
+// --- GAME STATE ---
+let moves = EMPTY.repeat(9); // default to empty board
 let xsTurn = true;
 const MODE = {
   SINGLE: "SINGLE",
   MULTI: "MULTI",
 };
+// ------------------
 
 /** draw a board from a string of 9 chars */
 function buildBoard(moves, title) {
@@ -28,31 +52,11 @@ function buildBoard(moves, title) {
     .replace(new RegExp(EMPTY, "g"), " ")}\n\n`;
 }
 
-const boardKeyMap = {
-  e: 0,
-  r: 1,
-  t: 2,
-  d: 3,
-  f: 4,
-  g: 5,
-  c: 6,
-  v: 7,
-  b: 8,
-};
-
-const keymap = Object.keys(boardKeyMap)
-  .map((k) => k.toUpperCase())
-  .join("");
-
-const map = buildBoard(keymap, "KEY MAP");
-
-/** default game board to empty board */
-let moves = EMPTY.repeat(9);
-
 function clearScreen() {
   // ESC<clear>ESC<set cursor 0,0>
   process.stdout.write("\x1B[2J\x1B[0f");
 }
+
 function drawMap() {
   process.stdout.write(map);
 }
@@ -62,7 +66,7 @@ function replaceChar(str, i, r) {
 }
 
 function isMarked(movesStr, i) {
-  return movesStr[i] !== "%";
+  return movesStr[i] !== EMPTY;
 }
 
 function updateGameBoard() {
@@ -154,7 +158,11 @@ function loop(mode) {
         console.log(`\n${xsTurn ? X : O} entered: ${input}`);
         xsTurn = !xsTurn;
       } else {
-        console.log("Invalid input. Choose from: E, R, T / D, F, G / C, V, B");
+        console.log(
+          `Invalid input. Choose from: ${Object.keys(boardKeyMap)
+            .map((k) => k.toUpperCase())
+            .join(", ")}`
+        );
       }
     } catch (e) {
       console.log(e.message);
