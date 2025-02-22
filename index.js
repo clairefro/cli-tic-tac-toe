@@ -153,4 +153,10 @@ function loop() {
   });
 }
 
+function init() {
+  // ask for game mode
+  // start game loop with mode as arg
+  rl.question;
+}
+
 loop();
