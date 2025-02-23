@@ -28,6 +28,10 @@ const keymapStr = Object.keys(boardKeyMap)
   .map((k) => k.toUpperCase())
   .join("");
 
+function getKeyByValue(obj, val) {
+  return Object.keys(obj).find((k) => obj[k] === val);
+}
+
 const map = buildBoard(keymapStr, "KEY MAP");
 
 // --- GAME STATE ---
@@ -37,6 +41,9 @@ const MODE = {
   SINGLE: "SINGLE",
   MULTI: "MULTI",
 };
+// default to single player
+let mode = MODE.SINGLE;
+
 // ------------------
 
 /** draw a board from a string of 9 chars */
@@ -114,67 +121,83 @@ function displayBoard() {
   updateGameBoard();
 }
 
-function computerMove() {}
+function getComputerMove(moves) {
+  let availIndices = [];
+  for (let i = 0; i < moves.length; i++) {
+    if (moves[i] === EMPTY) {
+      availIndices.push(i);
+    }
+  }
+  if (availIndices.length === 0) return;
+  const computerMove =
+    availIndices[Math.floor(Math.random() * availIndices.length)];
+  return computerMove;
+}
 
-function loop(mode) {
+function handleTurn(input) {
+  try {
+    const inLower = input.toLowerCase();
+    if (inLower === "exit") {
+      console.log("Bye!");
+      rl.close();
+      return;
+    }
+
+    if (isValidChar(inLower)) {
+      if (isMarked(moves, boardKeyMap[inLower])) {
+        throw new Error("You can't mark a used space!! Try another key");
+      }
+      moves = replaceChar(moves, boardKeyMap[inLower], xsTurn ? X : O);
+
+      displayBoard();
+
+      const result = checkResult(moves);
+
+      if (result === TIE) {
+        console.log("TIE GAME! No winner.\n");
+        rl.close();
+        return;
+      }
+      if (result) {
+        console.log(`\n${result} wins! Congrats.\n`);
+        rl.close();
+        return;
+      }
+      console.log(`\n${xsTurn ? X : O} entered: ${input}`);
+      xsTurn = !xsTurn;
+    } else {
+      console.log(
+        `Invalid input. Choose from: ${Object.keys(boardKeyMap)
+          .map((k) => k.toUpperCase())
+          .join(", ")}`
+      );
+    }
+  } catch (e) {
+    console.log(e.message);
+  }
+  setTimeout(() => loop(), 800);
+}
+
+function loop() {
   displayBoard();
   const turnMsg = `${xsTurn ? X : O}'s turn.`;
 
   if (mode == MODE.SINGLE && !xsTurn) {
+    const moveIndex = getComputerMove(moves);
+    const input = getKeyByValue(boardKeyMap, moveIndex);
+    setTimeout(() => handleTurn(input), 700);
+  } else {
+    console.log(
+      `\n${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
+    );
+
+    rl.question("> ", (input) => {
+      handleTurn(input);
+    });
   }
-  console.log(
-    `\n${turnMsg} Enter your move from the key map above (or 'exit' to quit):`
-  );
-
-  rl.question("> ", (input) => {
-    const inLower = input.toLowerCase();
-    try {
-      if (inLower === "exit") {
-        console.log("Bye!");
-        rl.close();
-        return;
-      }
-
-      if (isValidChar(inLower)) {
-        if (isMarked(moves, boardKeyMap[inLower])) {
-          throw new Error("You can't mark a used space!! Try another key");
-        }
-        moves = replaceChar(moves, boardKeyMap[inLower], xsTurn ? X : O);
-
-        displayBoard();
-
-        const result = checkResult(moves);
-
-        if (result === TIE) {
-          console.log("TIE GAME! No winner.");
-          rl.close();
-          return;
-        }
-        if (result) {
-          console.log(`\n${result} wins! Congrats.`);
-          rl.close();
-          return;
-        }
-        console.log(`\n${xsTurn ? X : O} entered: ${input}`);
-        xsTurn = !xsTurn;
-      } else {
-        console.log(
-          `Invalid input. Choose from: ${Object.keys(boardKeyMap)
-            .map((k) => k.toUpperCase())
-            .join(", ")}`
-        );
-      }
-    } catch (e) {
-      console.log(e.message);
-    }
-
-    setTimeout(loop, 800);
-  });
 }
 
 function init() {
-  // default to single player
-  let mode = MODE.SINGLE;
   // ask for game mode
   // start game loop with mode as arg
   rl.question(
@@ -190,7 +213,7 @@ function init() {
         console.log("\nInvalid mode selection. Defaulting to Single player.");
       }
       // delay start to show message
-      setTimeout(() => loop(mode), 700);
+      setTimeout(() => loop(), 700);
     }
   );
 }
