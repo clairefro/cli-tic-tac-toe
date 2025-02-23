@@ -11,7 +11,7 @@ const O = "O";
 const EMPTY = "%";
 const TIE = "TIE";
 
-const boardKeyMap = {
+const BOARD_KEY_MAP = {
   e: 0,
   r: 1,
   t: 2,
@@ -22,9 +22,23 @@ const boardKeyMap = {
   v: 7,
   b: 8,
 };
+
+const WINNING_COMBOS = [
+  // HORIZONTAL
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  // VERTICAL
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  // DIAGONAL
+  [0, 4, 8],
+  [2, 4, 6],
+];
 // -----------------
 
-const keymapStr = Object.keys(boardKeyMap)
+const keymapStr = Object.keys(BOARD_KEY_MAP)
   .map((k) => k.toUpperCase())
   .join("");
 
@@ -84,21 +98,7 @@ function updateGameBoard() {
 
 /** returns undefined, or the winning player, or "TIE" if no winner and moves are exhausted */
 function checkResult(moves) {
-  const winningCombos = [
-    // HORIZONTAL
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    // VERTICAL
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    // DIAGONAL
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-
-  for (const combo of winningCombos) {
+  for (const combo of WINNING_COMBOS) {
     const [a, b, c] = combo;
     if (moves[a] === moves[b] && moves[b] === moves[c] && moves[a] !== EMPTY) {
       return moves[a];
@@ -112,7 +112,7 @@ function checkResult(moves) {
 }
 
 function isValidChar(input) {
-  return Object.keys(boardKeyMap).includes(input.toLowerCase());
+  return Object.keys(BOARD_KEY_MAP).includes(input.toLowerCase());
 }
 
 function displayBoard() {
@@ -121,7 +121,33 @@ function displayBoard() {
   updateGameBoard();
 }
 
-function getComputerMove(moves) {
+function predictWinningMove(player) {
+  const currentMovesIndexes = [];
+  for (let i = 0; i < moves.length; i++) {
+    if (moves[i] === player) currentMovesIndexes.push(i);
+  }
+  let index;
+  for (combo of WINNING_COMBOS) {
+    const [a, b, c] = combo;
+    if (moves[a] === player && moves[b] == player) {
+      if (moves[c] !== EMPTY) return;
+      index = c;
+      break;
+    } else if (moves[a] === player && moves[c] == player) {
+      if (moves[b] !== EMPTY) return;
+      index = b;
+      break;
+    } else if (moves[b] === player && moves[c] == player) {
+      if (moves[a] !== EMPTY) return;
+      index = a;
+      break;
+    }
+  }
+
+  return index ? getKeyByValue(BOARD_KEY_MAP, index) : undefined;
+}
+
+function randomMove() {
   let availIndices = [];
   for (let i = 0; i < moves.length; i++) {
     if (moves[i] === EMPTY) {
@@ -130,7 +156,13 @@ function getComputerMove(moves) {
   }
   if (availIndices.length === 0) return;
   const index = availIndices[Math.floor(Math.random() * availIndices.length)];
-  const move = getKeyByValue(boardKeyMap, index);
+  const move = getKeyByValue(BOARD_KEY_MAP, index);
+  return move;
+}
+
+function getComputerMove(moves) {
+  // P0 = block X, P1 = win O, otherwise random
+  let move = predictWinningMove(X) || predictWinningMove(O) || randomMove();
   return move;
 }
 
@@ -144,10 +176,10 @@ function handleTurn(input) {
     }
 
     if (isValidChar(inLower)) {
-      if (isMarked(moves, boardKeyMap[inLower])) {
+      if (isMarked(moves, BOARD_KEY_MAP[inLower])) {
         throw new Error("You can't mark a used space!! Try another key");
       }
-      moves = replaceChar(moves, boardKeyMap[inLower], xsTurn ? X : O);
+      moves = replaceChar(moves, BOARD_KEY_MAP[inLower], xsTurn ? X : O);
 
       displayBoard();
 
@@ -167,7 +199,7 @@ function handleTurn(input) {
       xsTurn = !xsTurn;
     } else {
       console.log(
-        `Invalid input. Choose from: ${Object.keys(boardKeyMap)
+        `Invalid input. Choose from: ${Object.keys(BOARD_KEY_MAP)
           .map((k) => k.toUpperCase())
           .join(", ")}`
       );
@@ -197,8 +229,7 @@ function loop() {
 }
 
 function init() {
-  // ask for game mode
-  // start game loop with mode as arg
+  clearScreen();
   rl.question(
     "Select game mode:\n\n- 1. Single player (vs. computer)\n\n- 2. Multiplayer\n\n> ",
     (answer) => {
