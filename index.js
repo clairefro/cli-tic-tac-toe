@@ -129,9 +129,9 @@ function getComputerMove(moves) {
     }
   }
   if (availIndices.length === 0) return;
-  const computerMove =
-    availIndices[Math.floor(Math.random() * availIndices.length)];
-  return computerMove;
+  const index = availIndices[Math.floor(Math.random() * availIndices.length)];
+  const move = getKeyByValue(boardKeyMap, index);
+  return move;
 }
 
 function handleTurn(input) {
@@ -183,8 +183,7 @@ function loop() {
   const turnMsg = `${xsTurn ? X : O}'s turn.`;
 
   if (mode == MODE.SINGLE && !xsTurn) {
-    const moveIndex = getComputerMove(moves);
-    const input = getKeyByValue(boardKeyMap, moveIndex);
+    const input = getComputerMove(moves);
     setTimeout(() => handleTurn(input), 700);
   } else {
     console.log(
