@@ -96,6 +96,10 @@ function updateGameBoard() {
   return updatedBoard;
 }
 
+function loopWithDelay() {
+  setTimeout(() => loop(), 700);
+}
+
 /** returns undefined, or the winning player, or "TIE" if no winner and moves are exhausted */
 function checkResult(moves) {
   for (const combo of WINNING_COMBOS) {
@@ -207,7 +211,7 @@ function handleTurn(input) {
   } catch (e) {
     console.log(e.message);
   }
-  setTimeout(() => loop(), 800);
+  loopWithDelay();
 }
 
 function loop() {
@@ -243,7 +247,7 @@ function init() {
         console.log("\nInvalid mode selection. Defaulting to Single player.");
       }
       // delay start to show message
-      setTimeout(() => loop(), 700);
+      loopWithDelay();
     }
   );
 }
